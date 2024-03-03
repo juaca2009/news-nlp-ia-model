@@ -1,4 +1,6 @@
 import pandas as pd
+from string_manipulation import clean_text
+from token_manipulation import clean_tokens
 
 NAME_FILE = 'noticias.csv'
 CLEAN_FILE = '../model/noticias.csv'
@@ -21,3 +23,6 @@ def save_data(data_frame):
 
 if __name__ == "__main__":
     df = load_data()
+    df['title'] = df['title'].apply(clean_text).apply(clean_tokens)
+    df['title'] = df['title'].apply(lambda lista: ' '.join(lista))
+    save_data(df)
