@@ -9,8 +9,6 @@ cloudpickle==3.0.0
 confection==0.1.4
 cymem==2.0.8
 emoji==2.10.1
-es-core-news-lg==3.7.0
-es-core-news-md==3.7.0
 future==1.0.0
 gensim==4.3.2
 hyperopt==0.2.7
