@@ -6,7 +6,7 @@ from hyperopt.early_stop import no_progress_loss
 import numpy as np
 
 space = {
-    'n_clusters': hp.loguniform('n_clusters', np.log(10), np.log(500)),
+    'n_clusters': hp.loguniform('n_clusters', np.log(10), np.log(300)),
     'init': hp.choice('init', ['k-means++']), 
     'n_init': hp.choice('n_init', range(5, 15)),
     'max_iter': hp.choice('max_iter', range(1, 2))
@@ -21,7 +21,7 @@ def evaluate_bow(params):
 
 def hyper_bow():
     trials = Trials()
-    early_stop = no_progress_loss(iteration_stop_count=150)
+    early_stop = no_progress_loss(iteration_stop_count=100)
     best = fmin(
         fn=evaluate_bow,
         space=space,
