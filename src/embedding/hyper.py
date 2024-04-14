@@ -1,40 +1,27 @@
-from hyperopt import hp, fmin, tpe, Trials
-from hyperopt.early_stop import no_progress_loss
+import optuna
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from embeddings import create_embedding
+from optuna.storages import _CachedStorage
 import numpy as np
 import logs
 import logging
 
-space = {
-    'n_clusters': hp.loguniform('n_clusters', np.log(10), np.log(6300)),
-    'init': hp.choice('init', ['k-means++', 'random']), 
-    'n_init': hp.choice('n_init', range(10, 15)),
-    'max_iter': hp.choice('max_iter', range(1, 2))
-}
-
-def evaluate_k(params):
-    params['n_clusters'] = int(params['n_clusters'])
-    model = KMeans(**params, random_state=42)
+def objective(trial):
+    n_clusters = trial.suggest_int('n_clusters', 500, 1500)
+    max_iter = trial.suggest_int('max_iter', 50, 500, log=True)
+    n_init = trial.suggest_int('n_init', 10, 12, log=True)
+    model = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=max_iter, n_init=n_init)
     model.fit(embedding)
     score = silhouette_score(embedding, model.labels_)
-    return -score
+    print(f"Params: {trial.params}, Score: {score}")
+    return score
 
 def hyper_k():
-    trials = Trials()
-    early_stop = no_progress_loss(iteration_stop_count=200)
-    best = fmin(
-        fn=evaluate_k,
-        space=space,
-        algo=tpe.suggest,
-        max_evals=350, 
-        trials=trials,
-        early_stop_fn=early_stop
-    )
-    print("Mejores hiperparámetros encontrados:")
-    print(best)
-    return trials
+    study = optuna.create_study(direction='maximize', sampler=optuna.samplers.CmaEsSampler())
+    study.optimize(objective, n_trials=500, n_jobs=12)
+    best_params = study.best_params
+    print("Best params:", best_params)
 
 if __name__ == "__main__":
     embedding, n_embedding = create_embedding()
